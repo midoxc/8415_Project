@@ -1,7 +1,6 @@
 [Unit]
 Description=MySQL NDB Cluster Management Server
 After=network.target auditd.service
-StartLimitIntervalSec=5
 
 [Service]
 Type=forking
