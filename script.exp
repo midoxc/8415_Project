@@ -7,4 +7,3 @@ expect "Please provide a strong password that will be set for the root account o
 sleep 1
 send -- "\r"
 expect eof
-
