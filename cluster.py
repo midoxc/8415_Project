@@ -1,5 +1,4 @@
 import boto3
-import time
 
 user_data_manager = ""
 user_data_node = ""
@@ -9,21 +8,6 @@ with open("user_data_manager.sh", "r") as file:
 
 with open("user_data_node.sh", "r") as file:
     user_data_node = file.read()
-
-def check_instances_running(instancesId):
-    response = ec2_client.describe_instance_status(InstanceIds=[master['Instances'][0]['InstanceId']], IncludeAllInstances=True)
-    for statuses in response['InstanceStatuses']:
-        if statuses['InstanceState']['Name'] != 'running':
-            return False
-    return True
-
-def get_public_ip(instance_id):
-    ec2_client = boto3.client("ec2", region_name="us-east-1")
-    reservations = ec2_client.describe_instances(InstanceIds=[instance_id]).get("Reservations")
-
-    for reservation in reservations:
-        for instance in reservation['Instances']:
-            print(instance.get("PublicIpAddress"))
 
 if __name__ == "__main__":
     ec2_client = boto3.client("ec2", region_name="us-east-1")
