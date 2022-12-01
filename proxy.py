@@ -5,7 +5,7 @@ ec2_client = boto3.client("ec2", region_name="us-east-1")
 user_data_proxy = ""
 
 with open("user_data_proxy.sh", "r") as file:
-    user_data_manager = file.read()
+    user_data_proxy = file.read()
 
 def findSecurityGroupsByName(name):
     return ec2_client.describe_security_groups(
@@ -47,8 +47,7 @@ def createInstance(name, privateIp, SecurityGroupId, userData, InstanceType = "t
         SubnetId='subnet-0d6af2ce628f6f9e2',
         PrivateIpAddress=privateIp,
         IamInstanceProfile={
-                            'Arn': 'arn:aws:iam::360365674336:instance-profile/LabInstanceProfile',
-                            'Name': 'LabInstanceProfile'
+                            'Arn': 'arn:aws:iam::360365674336:instance-profile/LabInstanceProfile'
                      },
         TagSpecifications=[
         {
@@ -72,3 +71,5 @@ if __name__ == "__main__":
 
     print("proxy")
     print(proxy["Instances"][0]["InstanceId"])
+    print("dns")
+    print(proxy["Instances"][0]["PrivateDnsName"])

@@ -9,10 +9,7 @@ from pythonping import ping
 
 app = Flask(__name__)
 
-key = paramiko.RSAKey().from_private_key(
-    """-----BEGIN RSA PRIVATE KEY-----
------END RSA PRIVATE KEY-----
-""")
+key = paramiko.RSAKey().from_private_key_file("/home/ubuntu/vockey.pem")
 
 ips = {
     'master'    : 'ip-172-31-1-1.ec2.internal',
@@ -63,32 +60,36 @@ def executeCommands(name, commands):
     
     return output
 
-@app.post('/randomized', defaults={'path': ''})
-@app.post('/randomized/<path:path>')
-def randomized(path = None):
-    query = request.form.get("query")    
+def direct(query):   
+    return executeCommands("master", ["sudo mysql -u root -e \"{}\"".format(formatQuery(query))])
+
+def randomized(query):
     if not needsWriteAccess(query):
         return executeCommands(random.choice(workers), ["sudo mysql -u root -e \"{}\"".format(formatQuery(query))])
 
-    return executeCommands("master", ["sudo mysql -u root -e \"{}\"".format(formatQuery(query))])
+    return direct(query)
 
-@app.post('/customized', defaults={'path': ''})
-@app.post('/customized/<path:path>')
-def customized(path = None):
-    query = request.form.get("query")    
+def customized(query):
     if not needsWriteAccess(query):
         fastestWorker = getLowestPingWorker()
         if fastestWorker != "":
             return executeCommands(fastestWorker, ["sudo mysql -u root -e \"{}\"".format(formatQuery(query))])
 
-    return executeCommands("master", ["sudo mysql -u root -e \"{}\"".format(formatQuery(query))])
+    return direct(query)
 
 # route every POST requests to direct(), regardless of the path (equivalent to a wildcard)
 @app.post('/', defaults={'path': ''})
 @app.post('/<path:path>')
-def direct(path = None):
-    query = request.form.get("query")    
-    return executeCommands("master", ["sudo mysql -u root -e \"{}\"".format(formatQuery(query))])
+def handleRequest(path=None):
+    type = request.form.get("type")
+    query = request.form.get("query")
+    
+    if type == "custom":
+        return customized(query)
+    elif type == "random":
+        return randomized(query)
+    else:
+        return direct(query)
 
 if __name__ == '__main__':
       app.run()
