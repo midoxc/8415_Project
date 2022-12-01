@@ -1,7 +1,6 @@
 #!/bin/bash
 # user data file for cluster data nodes
 
-# installing de
 apt update
 apt install libclass-methodmaker-perl git dos2unix expect libaio1 libmecab2  -y
 

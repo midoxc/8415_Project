@@ -1,6 +1,6 @@
 #!/bin/bash
+# user data file for standalone mysql server
 
-# install mysql
 apt-get update
 apt-get install mysql-server sysbench -y
 
