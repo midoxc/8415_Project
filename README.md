@@ -1,8 +1,8 @@
 # 8415_Project
 Project for LOG8415
 
-### setup instuctions
-# mysql-server setup instruction for cluster
+# setup instuctions
+## mysql-server setup instruction for cluster
 After running the cluster.py script, run these commands on the master and each worker node to install mysql-server on them:
 ```
 cd ~
@@ -16,9 +16,9 @@ dpkg -i mysql-cluster-community-client_7.6.6-1ubuntu18.04_amd64.deb
 dpkg -i mysql-client_7.6.6-1ubuntu18.04_amd64.deb
 ```
 ```
-dpkg -i mysql-cluster-community-server_7.6.6-1ubuntu18.04_amd64.deb # requires password input***
+dpkg -i mysql-cluster-community-server_7.6.6-1ubuntu18.04_amd64.deb # requires password input ***
 ```
--- *** Note: this package will require the user to enter a password for root. It can be left empty.
+*** Note: this package will require the user to enter a password for root. It can be left empty.
 ```
 dpkg -i mysql-server_7.6.6-1ubuntu18.04_amd64.deb
 
@@ -37,7 +37,7 @@ systemctl restart mysql
 systemctl enable mysql
 ```
 
-# Sakila database setup instruction for cluster
+## Sakila database setup instruction for cluster
 Before setting up Sakila, the previous [mysql-server setup](# mysql-server setup instruction for cluster) must be completed.
 
 Once mysql-server is installed on the master, run these commands to install the Sakila database.
@@ -56,40 +56,42 @@ rm -r ~/sakila-db
 rm -r ~/8415_Project
 ```
 
-### benchmarking instructions
+# benchmarking instructions
 To run sysbench tests on the cluster and the standalone server, run these commands on the master instance and the standalone instance respectively.  
-# cluster read-write
+## cluster 
+### read-write
 ```
 sudo sysbench oltp_read_write --table-size=100000 --db-driver=mysql --mysql-db=sakila --mysql-user=root --mysql_storage_engine=ndbcluster prepare
 sudo sysbench oltp_read_write --table-size=100000 --db-driver=mysql --mysql-db=sakila --mysql-user=root --mysql_storage_engine=ndbcluster --num-threads=6 --max-time=60 --max-requests=0 run
 sudo sysbench oltp_read_write --table-size=100000 --db-driver=mysql --mysql-db=sakila --mysql-user=root --mysql_storage_engine=ndbcluster cleanup
 ```
-# cluster read-only
+### read-only
 ```
 sudo sysbench oltp_read_only --table-size=100000 --db-driver=mysql --mysql-db=sakila --mysql-user=root --mysql_storage_engine=ndbcluster prepare
 sudo sysbench oltp_read_only --table-size=100000 --db-driver=mysql --mysql-db=sakila --mysql-user=root --mysql_storage_engine=ndbcluster --num-threads=6 --max-time=60 --max-requests=0 run
 sudo sysbench oltp_read_only --table-size=100000 --db-driver=mysql --mysql-db=sakila --mysql-user=root --mysql_storage_engine=ndbcluster cleanup
 ```
-# cluster read-only
+### read-only
 ```
 sudo sysbench oltp_write_only --table-size=100000 --db-driver=mysql --mysql-db=sakila --mysql-user=root --mysql_storage_engine=ndbcluster prepare
 sudo sysbench oltp_write_only --table-size=100000 --db-driver=mysql --mysql-db=sakila --mysql-user=root --mysql_storage_engine=ndbcluster --num-threads=6 --max-time=60 --max-requests=0 run
 sudo sysbench oltp_write_only --table-size=100000 --db-driver=mysql --mysql-db=sakila --mysql-user=root --mysql_storage_engine=ndbcluster cleanup
 ```
 
-# standalone read-write
+## standalone
+### read-write
 ```
 sudo sysbench oltp_read_write --table-size=100000 --db-driver=mysql --mysql-db=sakila --mysql-user=root prepare
 sudo sysbench oltp_read_write --table-size=100000 --db-driver=mysql --mysql-db=sakila --mysql-user=root --num-threads=6 --max-time=60 --max-requests=0 run
 sudo sysbench oltp_read_write --table-size=100000 --db-driver=mysql --mysql-db=sakila --mysql-user=root cleanup
 ```
-# standalone read-only
+### read-only
 ```
 sudo sysbench oltp_read_only --table-size=100000 --db-driver=mysql --mysql-db=sakila --mysql-user=root prepare
 sudo sysbench oltp_read_only --table-size=100000 --db-driver=mysql --mysql-db=sakila --mysql-user=root --num-threads=6 --max-time=60 --max-requests=0 run
 sudo sysbench oltp_read_only --table-size=100000 --db-driver=mysql --mysql-db=sakila --mysql-user=root cleanup
 ```
-# standalone write-only
+### write-only
 ```
 sudo sysbench oltp_write_only --table-size=100000 --db-driver=mysql --mysql-db=sakila --mysql-user=root prepare
 sudo sysbench oltp_write_only --table-size=100000 --db-driver=mysql --mysql-db=sakila --mysql-user=root --num-threads=6 --max-time=60 --max-requests=0 run
