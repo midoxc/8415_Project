@@ -38,7 +38,7 @@ systemctl enable mysql
 ```
 
 ## Sakila database setup instruction for cluster
-Before setting up Sakila, the previous [mysql-server setup](# mysql-server setup instruction for cluster) must be completed.
+Before setting up Sakila, the previous [mysql-server setup](#mysql-server setup instruction for cluster) must be completed.
 
 Once mysql-server is installed on the master, run these commands to install the Sakila database.
 ```
