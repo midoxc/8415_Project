@@ -1,9 +1,9 @@
 # 8415_Project
-Project for LOG8415
+Final Project for LOG8415
 
 # setup instuctions
 ## mysql-server setup instruction for cluster
-After running the cluster.py script, run these commands on the master and each worker node to install mysql-server on them:
+After running the cluster.py script, run these commands on the master and each worker node to install mysql-server on them.
 ```
 cd ~
 wget https://dev.mysql.com/get/Downloads/MySQL-Cluster-7.6/mysql-cluster_7.6.6-1ubuntu18.04_amd64.deb-bundle.tar
@@ -40,12 +40,14 @@ systemctl enable mysql
 ## Sakila database setup instruction for cluster
 Before setting up Sakila, the previous [mysql-server setup](#mysql-server-setup-instruction-for-cluster) must be completed.
 
+Note that the Sakila database tables will only be present on the master node after the installation since Sakila uses spatial and fulltext indexes.
+This means the tables from Sakila are incompatible with NDB cluster. Therefore, they need to use InnoDB which keeps its data locally in this setup.
+
 Once mysql-server is installed on the master, run these commands to install the Sakila database.
 ```
 cd ~
 wget https://downloads.mysql.com/docs/sakila-db.tar.gz
 tar -xvf sakila-db.tar.gz
-sed -i "s/InnoDB/NDBCLUSTER/" sakila-schema.sql
 
 sudo mysql -u root -e "
 SOURCE ~/sakila-db/sakila-schema.sql;
