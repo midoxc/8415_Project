@@ -2,16 +2,18 @@ import requests
 import boto3
 import sys
 
-
 ec2_client = boto3.client("ec2", region_name="us-east-1")
 
 def getInstancesByName(name):
     response = ec2_client.describe_instances(
         Filters=[{
-    'Name':'Name',
-    'Values': [name]}]
+    'Name':'tag:Name',
+    'Values': [name]},
+    {
+    'Name':'instance-state-name',
+    'Values': ['running', 'stopped', 'stopping', 'rebooting', 'pending']}]
     )
-    return response["Instances"]
+    return response["Reservations"][0]["Instances"]
 
 def isInstanceRunning(id):
     response = ec2_client.describe_instance_status(InstanceIds=[id], IncludeAllInstances=True)
@@ -55,15 +57,16 @@ if __name__ == "__main__":
         while True:
             line = input("> ")
             text += line + "\n"
-            if line[-1] == ";":
-                response = sendQuery(proxy["PrivateDnsName"], type, text)
-                print(response.text)
+            if len(line) > 0 and line[-1] == ";":
+                response = sendQuery("http://" + proxy["PublicDnsName"], type, text)
+                print(response.content.decode("latin-1"))
                 text = ""
                 
-            if line.count("exit;") > 0:
+            if line.lower().count("exit") > 0:
                 break
 
     if len(sys.argv) == 3:
         with open(sys.argv[2]) as file:
-            response = sendQuery(proxy["PrivateDnsName"], type, file.read())
-            print(response.text)
+            response = sendQuery("http://" + proxy["PublicDnsName"], type, file.read())
+            print(response.content.decode("latin-1"))
+

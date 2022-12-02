@@ -45,6 +45,7 @@ Once mysql-server is installed on the master, run these commands to install the 
 cd ~
 wget https://downloads.mysql.com/docs/sakila-db.tar.gz
 tar -xvf sakila-db.tar.gz
+sed -i "s/InnoDB/NDBCLUSTER/" sakila-schema.sql
 
 sudo mysql -u root -e "
 SOURCE ~/sakila-db/sakila-schema.sql;
