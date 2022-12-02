@@ -3,8 +3,6 @@ Description=Gunicorn instance for proxy
 After=network.target
 
 [Service]
-User=ubuntu
-Group=www-data
 WorkingDirectory=/home/ubuntu/8415_Project
 ExecStart=/home/ubuntu/8415_Project/venv/bin/gunicorn -b localhost:8000 app:app
 Restart=always
