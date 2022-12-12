@@ -7,9 +7,9 @@ from sshtunnel import SSHTunnelForwarder
 
 ips = {
     'master'    : '137.31.1.1',
-    'worker1'   : '137.31.1.1',
-    'worker2'   : '137.31.1.1',
-    'worker3'   : '137.31.1.1'
+    'worker1'   : '137.31.1.2',
+    'worker2'   : '137.31.1.3',
+    'worker3'   : '137.31.1.4'
 }
 
 workers = ['worker1','worker2','worker3']
