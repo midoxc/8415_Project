@@ -49,7 +49,7 @@ def getPrivateSecurityGroup():
 
 def createInstance(name, privateIp, SecurityGroupId, userData, InstanceType = "t2.micro"):
     return ec2_client.run_instances(
-        ImageId="ami-0ee23bfc74a881de5",
+        ImageId="ami-0a6b2839d44d781b2",
         MinCount=1,
         MaxCount=1,
         InstanceType=InstanceType,

@@ -11,16 +11,16 @@ mkdir install
 tar -xvf mysql-cluster_7.6.6-1ubuntu18.04_amd64.deb-bundle.tar -C install/
 cd install
 
-dpkg -i mysql-common_7.6.6-1ubuntu18.04_amd64.deb
-dpkg -i mysql-cluster-community-client_7.6.6-1ubuntu18.04_amd64.deb
-dpkg -i mysql-client_7.6.6-1ubuntu18.04_amd64.deb
+sudo dpkg -i mysql-common_7.6.6-1ubuntu18.04_amd64.deb
+sudo dpkg -i mysql-cluster-community-client_7.6.6-1ubuntu18.04_amd64.deb
+sudo dpkg -i mysql-client_7.6.6-1ubuntu18.04_amd64.deb
 ```
 ```
-dpkg -i mysql-cluster-community-server_7.6.6-1ubuntu18.04_amd64.deb # requires password input ***
+sudo dpkg -i mysql-cluster-community-server_7.6.6-1ubuntu18.04_amd64.deb # requires password input ***
 ```
 *** Note: this package will require the user to enter a password for root. It can be left empty.
 ```
-dpkg -i mysql-server_7.6.6-1ubuntu18.04_amd64.deb
+sudo dpkg -i mysql-server_7.6.6-1ubuntu18.04_amd64.deb
 
 echo "
 [mysqld]
@@ -31,10 +31,10 @@ ndb-connectstring=ip-172-31-1-1.ec2.internal  # location of management server
 [mysql_cluster]
 # Options for NDB Cluster processes:
 ndb-connectstring=ip-172-31-1-1.ec2.internal  # location of management server
-" | tee -a /etc/mysql/my.cnf
+" | sudo tee -a /etc/mysql/my.cnf
 
-systemctl restart mysql
-systemctl enable mysql
+sudo systemctl restart mysql
+sudo systemctl enable mysql
 ```
 
 ## Sakila database setup instruction for cluster
