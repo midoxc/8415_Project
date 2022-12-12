@@ -1,24 +1,35 @@
-###
-# proxy application to reroute sql requests
-###
-
-import paramiko
+import pymysql
+import sys
 import random
-from flask import Flask, request
+
 from pythonping import ping
-
-app = Flask(__name__)
-
-key = paramiko.RSAKey.from_private_key_file("vockey.pem")
+from sshtunnel import SSHTunnelForwarder
 
 ips = {
-    'master'    : 'ip-172-31-1-1.ec2.internal',
-    'worker1'   : 'ip-172-31-1-2.ec2.internal',
-    'worker2'   : 'ip-172-31-1-3.ec2.internal',
-    'worker3'   : 'ip-172-31-1-4.ec2.internal'
+    'master'    : '137.31.1.1',
+    'worker1'   : '137.31.1.1',
+    'worker2'   : '137.31.1.1',
+    'worker3'   : '137.31.1.1'
 }
 
 workers = ['worker1','worker2','worker3']
+
+# Connect to the MySQL cluster through SSH
+ssh_config = {
+    'ssh_username': 'ubuntu',
+    'ssh_pkey': 'vockey.pem',
+    'remote_bind_address': (ips["master"], 3306),
+}
+
+# Set up the connection to the MySQL cluster
+db_config = {
+    'host': ips["master"],
+    'user': 'proxy_user',
+    'password': 'super_secret_proxy_password',
+    'db': 'mycluster',
+    'port': 3306,
+    'autocommit': True
+}
 
 def getLowestPingWorker():
     best = ""
@@ -38,72 +49,92 @@ def needsWriteAccess(query):
         if len(keyword) > 0 and keyword[0] in ["delete", "update", "create", "insert", "grant", "revoke"]:
             return True
     return False
-
-def formatQuery(query):
-    query = query.replace('"', '\\"')
-    query = query.replace('$', '\\$')
-    query = query.replace('`', '\\`')
-    return query
-
 def executeCommands(name, commands):
-    ssh = paramiko.SSHClient()
-    ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
-    ssh.connect(hostname=ips[name], username="ubuntu", pkey=key, allow_agent=False, look_for_keys=False)
+    with SSHTunnelForwarder (ips[name], **ssh_config) as tunnel:
+        connection = pymysql.connect(**db_config)
 
-    output = name + "\n"
-    for command in commands:
-        print("{} running command: {}".format(name, command))
-        stdin , stdout, stderr = ssh.exec_command(command)
-        out = stdout.read()
-        err = stderr.read()
-        output += out.decode("latin-1") + "\n"
-        output += err.decode("latin-1") + "\n"
+        try:
+            with connection.cursor() as cursor:
+                # Execute a MySQL query
+                sql = 'SELECT * FROM actor LIMIT 10;'
+                cursor.execute(commands)
 
-    ssh.close()
+                # Fetch the results of the query
+                result = cursor.fetchall()
 
-    return output
+                # Print the results
+                print(tuple([ i[0] for i in cursor.description ]))
+                for line in result:
+                    print(line)
+
+        finally:
+            # Close the connection to the MySQL cluster
+            connection.close()
 
 def direct(query):
-    print("sudo mysql -u root -e \"{}\"".format(formatQuery(query)))
-    return executeCommands("master", ["sudo mysql -e \"{}\"".format(formatQuery(query))])
+    executeCommands("master", query)
 
 def randomized(query):
     if not needsWriteAccess(query):
         random_worker = random.choice(workers)
         print("read on " + random_worker)
-        return executeCommands(random_worker, ["sudo mysql -e \"{}\"".format(formatQuery(query))])
-
-    return direct(query)
+        executeCommands(random_worker, query)
+    else:
+        direct(query)
 
 def customized(query):
     if not needsWriteAccess(query):
         fastestWorker = getLowestPingWorker()
         if fastestWorker != "":
             print("read on " + fastestWorker)
-            return executeCommands(fastestWorker, ["sudo mysql -e \"{}\"".format(formatQuery(query))])
-
-    return direct(query)
+            executeCommands(fastestWorker, query)
+    else:
+        direct(query)
 
 # route every POST requests to direct(), regardless of the path (equivalent to a wildcard)
-@app.post('/', defaults={'path': ''})
-@app.post('/<path:path>')
-def handleRequest(path=None):
-    type = request.json.get("type")
-    query = request.json.get("query")
-
-    if str(type) == "" or str(query) == "":
-        return "INVALID POST PARAMS : missing type or query \n" + request.json
-
-    print(request.json)
+def sendQuery(type, query):
     type = str(type).strip()
     query = str(query).strip()
 
     if type == "custom":
-        return customized(query).strip().encode("latin-1")
+        customized(query)
     elif type == "random":
-        return randomized(query).strip().encode("latin-1")
+        randomized(query)
     else:
-        return direct(query).strip().encode("latin-1")
+        direct(query)
 
-if __name__ == '__main__':
-    app.run(host="127.0.0.1", port=8000)
+if __name__ == "__main__":
+    type = ""
+    if len(sys.argv) == 1:
+        print("choose a proxy type:")
+        print("-- (1) direct - default")
+        print("-- (2) random")
+        print("-- (3) custom")
+        type = input(">>> ")
+
+    if len(sys.argv) > 1:
+        type = sys.argv[1]
+
+    if type in ["2", "random"]:
+        type = "random"
+    elif type in ["3", "custom"]:
+        type = "custom"
+    else:
+        type = "direct"
+
+    if len(sys.argv) < 3:
+        text = ""
+        while True:
+            line = input("> ")
+            text += line + "\n"
+            if len(line) > 0 and line[-1] == ";":
+                sendQuery(type, text)
+                text = ""
+                
+            if line.lower().count("exit") > 0:
+                break
+
+    if len(sys.argv) == 3:
+        with open(sys.argv[2]) as file:
+            sendQuery(type, file.read())
+
