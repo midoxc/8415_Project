@@ -1,9 +1,0 @@
-#!/usr/bin/expect -f
-
-set timeout -1
-spawn dpkg -i mysql-cluster-community-server_7.6.6-1ubuntu18.04_amd64.deb
-match_max 100000
-expect "Please provide a strong password that will be set for the root account of your MySQL database."
-sleep 1
-send -- "\r"
-expect eof
