@@ -16,7 +16,7 @@ sudo dpkg -i mysql-cluster-community-client_7.6.6-1ubuntu18.04_amd64.deb
 sudo dpkg -i mysql-client_7.6.6-1ubuntu18.04_amd64.deb
 ```
 ```
-sudo dpkg -i mysql-cluster-community-server_7.6.6-1ubuntu18.04_amd64.deb # requires password input ***
+sudo dpkg -i mysql-cluster-community-server_7.6.6-1ubuntu18.04_amd64.deb
 ```
 *** Note: this package will require the user to enter a password for root. It can be left empty.
 ```
