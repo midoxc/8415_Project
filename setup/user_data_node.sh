@@ -1,6 +1,7 @@
 #!/bin/bash
 # user data file for cluster data nodes
 
+# installing required packages
 apt update
 apt install libclass-methodmaker-perl git dos2unix expect libaio1 libmecab2  -y
 
@@ -28,5 +29,3 @@ cp /home/ubuntu/8415_Project/ndbd.service /etc/systemd/system/
 systemctl daemon-reload
 systemctl enable ndbd
 systemctl start ndbd
-
-# setup for mysql-server incomplete, see README.md for setup instructions.

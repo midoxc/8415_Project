@@ -14,14 +14,14 @@ ips = {
 
 workers = ['worker1','worker2','worker3']
 
-# Connect to the MySQL cluster through SSH
+# Params to setup the SSH tunnel forwarder
 ssh_config = {
     'ssh_username': 'ubuntu',
     'ssh_pkey': 'vockey.pem',
     'remote_bind_address': (ips["master"], 3306),
 }
 
-# Set up the connection to the MySQL cluster
+# Params to connect to the MySQL cluster
 db_config = {
     'host': ips["master"],
     'user': 'proxy_user',
@@ -32,6 +32,11 @@ db_config = {
 }
 
 def getLowestPingWorker():
+    """
+    Returns the name of the fastest worker
+
+    :return name of worker with the lowest ping
+    """
     best = ""
     time = 2000
     for worker in workers:
@@ -43,6 +48,12 @@ def getLowestPingWorker():
     return best
 
 def needsWriteAccess(query):
+    """
+    Checks if a query needs write access.
+
+    :param: query to check
+    :return true if query needs write access, false otherwise.
+    """
     instructions = query.split(";")
     for instruction in instructions:
         keyword = instruction.strip().lower().split()
@@ -50,6 +61,13 @@ def needsWriteAccess(query):
             return True
     return False
 def executeCommands(name, commands):
+    """
+    Runs the sql commands on the specified node.
+    Prints the output of the command
+
+    :param: name of the node
+    :param: query to check
+    """
     with SSHTunnelForwarder (ips[name], **ssh_config) as tunnel:
         connection = pymysql.connect(**db_config)
 
@@ -72,9 +90,19 @@ def executeCommands(name, commands):
             connection.close()
 
 def direct(query):
+    """
+    Runs the sql commands on direct strategy
+
+    :param: query to run
+    """
     executeCommands("master", query)
 
 def randomized(query):
+    """
+    Runs the sql commands on random strategy
+
+    :param: query to run
+    """
     if not needsWriteAccess(query):
         random_worker = random.choice(workers)
         print("read on " + random_worker)
@@ -83,6 +111,11 @@ def randomized(query):
         direct(query)
 
 def customized(query):
+    """
+    Runs the sql commands on custom strategy
+
+    :param: query to run
+    """
     if not needsWriteAccess(query):
         fastestWorker = getLowestPingWorker()
         if fastestWorker != "":
@@ -93,6 +126,12 @@ def customized(query):
 
 # route every POST requests to direct(), regardless of the path (equivalent to a wildcard)
 def sendQuery(type, query):
+    """
+    Runs the sql commands
+
+    :param: type of strategy used
+    :param: query to run
+    """
     type = str(type).strip()
     query = str(query).strip()
 
@@ -104,6 +143,7 @@ def sendQuery(type, query):
         direct(query)
 
 if __name__ == "__main__":
+    # if the first argument isn't specified, ask user to chose a proxy type
     type = ""
     if len(sys.argv) == 1:
         print("choose a proxy type:")
@@ -112,6 +152,7 @@ if __name__ == "__main__":
         print("-- (3) custom")
         type = input(">>> ")
 
+    # if the first argument is specified, use it as the proxy type
     if len(sys.argv) > 1:
         type = sys.argv[1]
 
@@ -122,6 +163,7 @@ if __name__ == "__main__":
     else:
         type = "direct"
 
+    # if the second argument isn't specified, ask for user to enter query/queries in the terminal
     if len(sys.argv) < 3:
         text = ""
         while True:
@@ -134,6 +176,7 @@ if __name__ == "__main__":
             if line.lower().count("exit") > 0:
                 break
 
+    # if the second argument is specified, run the commands in the file if possible
     if len(sys.argv) == 3:
         with open(sys.argv[2]) as file:
             sendQuery(type, file.read())
