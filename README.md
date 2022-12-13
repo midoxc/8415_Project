@@ -98,5 +98,12 @@ sudo sysbench oltp_write_only --table-size=100000 --db-driver=mysql --mysql-db=s
 sudo sysbench oltp_write_only --table-size=100000 --db-driver=mysql --mysql-db=sakila --mysql-user=root cleanup
 ```
 
+# proxy usage 
+In addition to having 3 stategies: direct, random and custom hit, the proxy can be used in 2 different ways: console mode and file mode. 
+If given no parameters, the app.py script will ask the user to chose a strategy, and the proceed to the console mode where the user can write their own queries.
+If given 1 parameter, the app.py script will match that param to a strategy and proceed to the console mode.
+If given 2 paramether, the app.py script will match the first param to a strategy and treat the second param as a file to read sql queries from. 
+It will try to execute all the queries in the file according to the strategy selected.
+
 # references
 This project was greatly inspired from [this tutorial](https://www.digitalocean.com/community/tutorials/how-to-create-a-multi-node-mysql-cluster-on-ubuntu-18-04)
